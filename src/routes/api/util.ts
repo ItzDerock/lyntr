@@ -1,6 +1,6 @@
 import { db } from '@/server/db';
 import { lynts, likes, followers, users, notifications, history } from '@/server/schema';
-import { and, eq, inArray, sql } from 'drizzle-orm';
+import { and, count, eq, inArray, sql } from 'drizzle-orm';
 import sharp from 'sharp';
 
 export const lyntObj = (userId: string) => {
@@ -10,10 +10,16 @@ export const lyntObj = (userId: string) => {
 		userId: lynts.user_id,
 		createdAt: lynts.created_at,
 		views: sql<number>`(
-            SELECT COUNT(*) 
-            FROM ${history} 
-            WHERE ${history.lynt_id} = ${lynts.id}
-        )`.as('views'),
+		          SELECT COUNT(*)
+		          FROM ${history}
+		          WHERE ${history.lynt_id} = ${lynts.id}
+		      )`.as('views'),
+		// views: db
+		// 	.select({ views: count() })
+		// 	.from(history)
+		// 	.where(eq(history.lynt_id, lynts.id))
+		// 	.as('views'),
+
 		reposted: lynts.reposted,
 		parentId: lynts.parent,
 		has_image: lynts.has_image,
@@ -49,68 +55,9 @@ export const lyntObj = (userId: string) => {
 		userCreatedAt: users.created_at,
 		username: users.username,
 		iq: users.iq,
-		verified: users.verified,
-		parentContent: sql<string>`(
-            select content from ${lynts} as parent
-            where parent.id = ${lynts.parent}
-        )`.as('parent_content'),
-		parentHasImage: sql<string>`(
-            select has_image from ${lynts} as parent
-            where parent.id = ${lynts.parent}
-        )`.as('has_image'),
-		parentUserHandle: sql<string>`(
-        select handle from ${users} as parent_user
-        where parent_user.id = (
-            select user_id from ${lynts} as parent
-            where parent.id = ${lynts.parent}
-        )
-    )`.as('parent_user_handle'),
-		parentUserCreatedAt: sql<string>`(
-        select created_at from ${users} as parent_user
-        where parent_user.id = (
-            select user_id from ${lynts} as parent
-            where parent.id = ${lynts.parent}
-        )
-    )`.as('parent_user_created_at'),
-		parentUserBio: sql<string>`(
-        select bio from ${users} as parent_user
-        where parent_user.id = (
-            select user_id from ${lynts} as parent
-            where parent.id = ${lynts.parent}
-        )
-    )`.as('bio'),
-		parentUserUsername: sql<string>`(
-        select username from ${users} as parent_user
-        where parent_user.id = (
-            select user_id from ${lynts} as parent
-            where parent.id = ${lynts.parent}
-        )
-    )`.as('parent_user_username'),
-		parentUserVerified: sql<boolean>`(
-        select verified from ${users} as parent_user
-        where parent_user.id = (
-            select user_id from ${lynts} as parent
-            where parent.id = ${lynts.parent}
-        )
-    )`.as('parent_user_verified'),
-		parentUserIq: sql<number>`(
-        select iq from ${users} as parent_user
-        where parent_user.id = (
-            select user_id from ${lynts} as parent
-            where parent.id = ${lynts.parent}
-        )
-    )`.as('parent_user_iq'),
-		parentUserId: sql<number>`(
-        select id from ${users} as parent_user
-        where parent_user.id = (
-            select user_id from ${lynts} as parent
-            where parent.id = ${lynts.parent}
-        )
-    )`.as('parent_user_id'),
-		parentCreatedAt: sql<string>`(
-        select created_at from ${lynts} as parent
-        where parent.id = ${lynts.parent}
-    )`.as('parent_created_at')
+		verified: users.verified
+
+		//		parent:
 	};
 };
 

@@ -29,6 +29,24 @@ export async function mainFeed(userId: string, limit = 20, excludePosts: string[
 		whereConditions = and(whereConditions, not(inArray(lynts.id, excludePosts)));
 	}
 
+	const lyntSubquery = db
+		.select({
+			content: lynts.content,
+			hasImage: lynts.has_image,
+			userHandle: users.handle,
+			userCreatedAt: users.created_at,
+			userBio: users.bio,
+			userUsername: users.username,
+			userVerified: users.verified,
+			userIq: users.iq,
+			userId: users.id,
+			createdAt: lynts.created_at,
+			parentId: lynts.id
+		})
+		.from(lynts)
+		.leftJoin(users, eq(lynts.user_id, users.id))
+		.as('parent');
+
 	const feed = await db
 		.select({
 			...lyntObj(userId),
@@ -51,6 +69,7 @@ export async function mainFeed(userId: string, limit = 20, excludePosts: string[
 		.leftJoin(users, eq(lynts.user_id, users.id))
 		.leftJoin(likeCounts, eq(lynts.id, likeCounts.lyntId))
 		.leftJoin(history, and(eq(history.lynt_id, lynts.id), eq(history.user_id, userId)))
+		.leftJoin(lyntSubquery, eq(lynts.id, lyntSubquery.parentId))
 		.where(whereConditions)
 		.orderBy(
 			desc(sql`CASE WHEN ${history.id} IS NULL THEN 1 ELSE 0 END`),

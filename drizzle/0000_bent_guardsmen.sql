@@ -5,7 +5,7 @@ CREATE TABLE IF NOT EXISTS "followers" (
 );
 --> statement-breakpoint
 CREATE TABLE IF NOT EXISTS "history" (
-	"id" text PRIMARY KEY NOT NULL,
+	"id" uuid PRIMARY KEY DEFAULT gen_random_uuid() NOT NULL,
 	"user_id" text,
 	"lynt_id" text,
 	"created_at" timestamp DEFAULT now()
@@ -14,6 +14,7 @@ CREATE TABLE IF NOT EXISTS "history" (
 CREATE TABLE IF NOT EXISTS "likes" (
 	"lynt_id" text NOT NULL,
 	"user_id" text NOT NULL,
+	"liked_at" timestamp DEFAULT now(),
 	CONSTRAINT "likes_pkey" PRIMARY KEY("lynt_id","user_id")
 );
 --> statement-breakpoint
